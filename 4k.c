@@ -1246,9 +1246,15 @@ static i16 search(H(91, 1, Position *const restrict pos),
             H(57, 3, pos), H(57, 3, stack[ply].moves), H(57, 3, in_qsearch));)
   G(91, i32 moves_evaluated = 0;)
   G(91, i32 best_score = in_qsearch ? static_eval : -inf;)
-  G(91, i32 quiets_evaluated = 0;)
 
   for (i32 move_index = 0; move_index < stack[ply].num_moves; move_index++) {
+    
+    // LATE MOVE PRUNING
+    if (G(114, !in_check) && G(114, alpha == beta - 1) &&
+        G(114, moves_evaluated > 1 + depth * depth >> !improving)) {
+      break;
+    }
+
     i32 move_score = ~0x1010101LL; // Ends up as large negative
 
     // MOVE ORDERING
@@ -1369,16 +1375,6 @@ static i16 search(H(91, 1, Position *const restrict pos),
                   }))
         break;
       }
-    }
-
-    if (stack[ply].moves[move_index].takes_piece == None) {
-      quiets_evaluated++;
-    }
-
-    // LATE MOVE PRUNING
-    if (G(114, !in_check) && G(114, alpha == beta - 1) &&
-        G(114, quiets_evaluated > 1 + depth * depth >> !improving)) {
-      break;
     }
   }
 
